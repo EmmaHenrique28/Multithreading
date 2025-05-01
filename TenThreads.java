@@ -4,7 +4,7 @@ public class TenThreads {
     final static int WIDTH = 100;
     final static int HEIGHT = 100;
 
-    private static class WorkerThread extends Thread {
+    private static class WorkerThread implements Runnable {
         
         int max = Integer.MIN_VALUE;
         int [] ourArray;
@@ -15,6 +15,7 @@ public class TenThreads {
 
         // Find the max value in some rows of the array
 
+        @Override
         public void run() {
             for (int i = 0; i < ourArray.length; i++)
             max = Math.max(max, ourArray[i]);
@@ -39,21 +40,23 @@ public class TenThreads {
     }
 
     public static void main (String[] args){
-        WorkerThread [] threads = new WorkerThread[10];
-        int [] [] bigMatrix = getBigHairyMatrix();
+        WorkerThread[] workers = new WorkerThread[10];
+        Thread[] threads = new Thread[10];
+        int[][] bigMatrix = getBigHairyMatrix();
         int max = Integer.MIN_VALUE;
 
-        //Give each thread a slice of the matrix to work with
-        for (int i = 0; i < 10; i++){
-            threads[i] = new WorkerThread(bigMatrix[i]);
-            threads[i].start(); 
+        // Give each thread a slice of the matrix to work with
+        for (int i = 0; i < 10; i++) {
+            workers[i] = new WorkerThread(bigMatrix[i]);
+            threads[i] = new Thread(workers[i]);
+            threads[i].start();
         }
 
-        //wait for each thread to finish
+        // Wait for each thread to finish
         try {
             for (int i = 0; i < 10; i++) {
                 threads[i].join();
-                max = Math.max(max, threads[i].getMax());
+                max = Math.max(max, workers[i].getMax());
             }
         }
         catch (InterruptedException e) {
